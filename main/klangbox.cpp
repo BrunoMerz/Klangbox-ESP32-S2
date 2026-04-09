@@ -61,7 +61,10 @@ extern "C" void app_main(void)
 {
     // Wait for UART
     vTaskDelay(pdMS_TO_TICKS(200));
-
+    analogReadResolution(12);
+    pinMode(VOLUME,INPUT);
+    pinMode(BATTERIE,INPUT);
+    
     // Get singleton objekts of necessary classes
     FileList *fl = FileList::getInstance();
     PlaySound *ps = PlaySound::getInstance();

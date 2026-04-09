@@ -69,24 +69,24 @@ void PlaySound::initFS() {
 
 // Check Volume, Map Analog Read 0-4095 (0-3.3V) to 0-1.0
 float PlaySound::getVolume() {
-    float vol = map(analogRead(VOLUME),0,4095,0,1000);
-    vol /= 1000;
+  float vol = map(analogRead(VOLUME),0,4095,0,1000);
+  vol /= 1000;
 #if defined(WITH_TST)
-    vol = 0.6;
+  vol = 0.6;
 #endif
-    return vol==0.0?0.2:vol;
+  return vol==0.0?0.2:vol;
 }
 
 
 // Check Battery, Map Analog Read 0-4095 (0-3.3V) to 0-3.3
 float PlaySound::getBatterie() {
-    float bat = map(analogRead(BATTERIE),0,4095,0,3300);
-    ESP_LOGI(PLTAG,"getBatterie=%f\n",bat);
-    bat /= 1000;
+  float bat = map(analogRead(BATTERIE),0,4095,0,3300);
+  ESP_LOGI(PLTAG,"getBatterie=%f\n",bat);
+  bat /= 1000;
 #ifdef WITH_TST
-    return 2.9;
+  return 2.9;
 #endif
-    return bat==0.0?3.3:bat;
+  return bat==0.0?3.3:bat;
 }
 
 
@@ -107,19 +107,15 @@ void PlaySound::setFileFilter() {
 
 // Plays either next MP3 or Battery MP3 hint if Battery goes low
 void PlaySound::doPlaySound() {
-    ESP_LOGI(PLTAG,"doPlaySound\n");
+  ESP_LOGI(PLTAG,"doPlaySound\n");
 
-    // Analog PINs for Volume and Battery setting
-    pinMode(VOLUME,INPUT);
-    pinMode(BATTERIE,INPUT);
-    
-    if(getBatterie() < 3.0) { // if battery less than 3V play Sound "Battery almost empty"
-      source.setFileFilter("_Battery*");  
-      dly=11000;
-    } else {
-        setFileFilter();
-        dly=0;
-    }
+  if(getBatterie() < 3.0) { // if battery less than 3V play Sound "Battery almost empty"
+    source.setFileFilter("_Battery*");  
+    dly=11000;
+  } else {
+    setFileFilter();
+    dly=0;
+  }
 
     // setup output
     auto cfg = i2s.defaultConfig(TX_MODE);
