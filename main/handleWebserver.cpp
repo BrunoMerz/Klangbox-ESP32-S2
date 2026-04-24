@@ -145,11 +145,11 @@ bool handleList() {
   }
   if(fl->dirList.size())
     temp += ",";
-  temp += "{\"fl->usedBytes\":\"";
+  temp += "{\"usedBytes\":\"";
   temp += formatBytes(fl->usedBytes);   // used bytes in filesystem
-  temp += "\",\"fl->totalBytes\":\"";
+  temp += "\",\"totalBytes\":\"";
   temp += formatBytes(fl->totalBytes);  // total bytes in filesystem
-  temp += "\",\"fl->freeBytes\":\""; 
+  temp += "\",\"freeBytes\":\""; 
   temp += formatBytes(fl->freeBytes);   // free bytes in filesystem
   temp += "\"}]";   
 

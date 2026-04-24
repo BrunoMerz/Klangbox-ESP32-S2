@@ -101,6 +101,7 @@ void PlaySound::setFileFilter() {
     if(++counter>=fl->dirList.size()-2)
       counter=0;
   }
+  ESP_LOGI(PLTAG,"fileFilter=%s\n",fileFilter);
   source.setFileFilter(fileFilter);
 }
 

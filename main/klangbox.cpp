@@ -9,6 +9,16 @@
  *           SD05CRMA   LiPo charging
  *           Speaker    8 Ohm
  *           see        https://bmerz.de/elektronik/
+ * 
+ *  Logging Ein-Ausschalten:
+ *      idf.py menuconfig
+ *          Component config  ---> Log  ---> Log Level  ---> Default log verbosity ----> no Output or Info
+ * 
+ *  Build:
+ *      idf.py build
+ * 
+ *  Flash:
+ *      idf.py -p COM11 flash
  */
 
 
@@ -29,6 +39,7 @@
 #include "playSound.h"
 #include "handleWebserver.h"
 
+#define MAINTAG "MAIN"
 
 extern const uint8_t ulp_main_bin_start[] asm("_binary_ulp_main_bin_start");
 extern const uint8_t ulp_main_bin_end[]   asm("_binary_ulp_main_bin_end");
@@ -86,15 +97,16 @@ extern "C" void app_main(void)
     uint32_t causes = esp_sleep_get_wakeup_causes();
     /* not a wakeup from ULP, load the firmware */
     if (!(causes & BIT(ESP_SLEEP_WAKEUP_ULP))) {
-        printf("Not a ULP-RISC-V wakeup, initializing it! \n");
+        ESP_LOGI(MAINTAG, "Not a ULP-RISC-V wakeup, initializing it! \n");
         init_ulp_program();
         hw->handleWeb();
+        ESP_LOGI(MAINTAG, "After Handle Web \n");
     }
 
     /* ULP Risc-V read and detected a change in GPIO_0, prints */
     if (causes & BIT(ESP_SLEEP_WAKEUP_ULP)) {
-        printf("ULP-RISC-V woke up the main CPU! \n");
-        printf("ULP-RISC-V read changes in GPIO_0 current is: %s \n",
+        ESP_LOGI(MAINTAG, "ULP-RISC-V woke up the main CPU! \n");
+        ESP_LOGI(MAINTAG, "ULP-RISC-V read changes in GPIO_0 current is: %s \n",
             (bool)(ulp_gpio_level_previous == 0) ? "Low" : "High" );
         //gpio_set_level(GPIO_NUM_15, 1); // LED an
         ps->doPlaySound();
@@ -102,7 +114,7 @@ extern "C" void app_main(void)
     }
 
     /* Go back to sleep, only the ULP Risc-V will run */
-    printf("Entering in deep sleep\n\n");
+    ESP_LOGI(MAINTAG, "Entering in deep sleep\n\n");
 
     /* Small delay to ensure the messages are printed */
     vTaskDelay(100);
