@@ -33,11 +33,14 @@
 #include "ulp_main.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <nvs_flash.h>
 
 #include "configuration.h"
 #include "fileList.h"
 #include "playSound.h"
 #include "handleWebserver.h"
+
+#include <Arduino.h>
 
 #define MAINTAG "MAIN"
 
@@ -75,7 +78,18 @@ extern "C" void app_main(void)
     analogReadResolution(12);
     pinMode(VOLUME,INPUT);
     pinMode(BATTERIE,INPUT);
-    
+
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        // NVS-Partition muss gelöscht und neu initialisiert werden
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    initArduino();
+
+
     // Get singleton objekts of necessary classes
     FileList *fl = FileList::getInstance();
     PlaySound *ps = PlaySound::getInstance();
@@ -84,7 +98,7 @@ extern "C" void app_main(void)
     blinkLED(2,300);
 
     // Init Filesystem an build a List of Files
-    ps->initFS();
+    ps->init();
     fl->buildList();
 
     /* Initialize selected GPIO as RTC IO, enable input, disable pullup and pulldown */

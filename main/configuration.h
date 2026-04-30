@@ -13,7 +13,7 @@
 #define ULP_WAKEUP_INTERVAL_MS 100
 
 // Klangbox settings
-#define LOOPCNTMAX 45000 // Milliseconds
+#define LOOPCNTMAX 60000 // Milliseconds
 
 //#define WITH_TST
 //#define WITH_BLINK

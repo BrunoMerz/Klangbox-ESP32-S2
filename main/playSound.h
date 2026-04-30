@@ -15,10 +15,11 @@ class PlaySound
 public:
     static PlaySound* getInstance();
 
-    void initFS(void);
+    void init(void);
     float getVolume(void); 
     float getBatterie(void);
     void setFileFilter(void);
+    void setFileFilter(const char *path);
     void doPlaySound(void);
 
 private:

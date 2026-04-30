@@ -18,7 +18,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include "Languages.h"
-#include <nvs_flash.h>
+
 
 
 #include "handleWebserver.h"
@@ -252,7 +252,7 @@ bool handleFile(String &&path) {
       else if(path.endsWith(".json"))
         mime_type = "application/json";
       else if(path.endsWith(".mp3"))
-        mime_type = "audio/mpeg";
+        mime_type = "audio/mp3";
       else if(path.endsWith(".js"))
         mime_type = "text/javascript";
       else
@@ -294,7 +294,7 @@ void handleUpload() {
 // Format filesystem
 void formatFS() {
   LittleFS.format();
-  ps->initFS();
+  ps->init();
   fl->dirList.clear();
   server.sendHeader("Location", "/");
   server.send(303, "message/http");
@@ -338,6 +338,13 @@ void handleFSExplorer() {
   {
     deleteFileOrDir(server.arg("delete"));
     sendResponse();
+  }  
+  else if (server.hasArg("play")) 
+  {
+    //sendResponse();
+    ps = PlaySound::getInstance();
+    ps->setFileFilter(server.arg("play").c_str());
+    ps->doPlaySound();
   }
   else
   {
@@ -433,7 +440,6 @@ void handleContent(const uint8_t * image, size_t size, const char * mime_type) {
 
 // Callback-Funktion for WiFi-Events
 void WiFiEvent(WiFiEvent_t event) {
-   ESP_LOGI(HWTAG,"[WiFiEvent] Event: %d\n", event);
   switch (event) {
     case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
       ESP_LOGI(HWTAG,"Ein Client hat sich verbunden!\n");
@@ -452,13 +458,16 @@ void WiFiEvent(WiFiEvent_t event) {
     case ARDUINO_EVENT_WIFI_AP_STOP:
       ESP_LOGI(HWTAG,"Accesspoint beendet!\n");
       break;
+    case ARDUINO_EVENT_WIFI_AP_START:
+      ESP_LOGI(HWTAG,"Accesspoint gestartet!\n");
+      break;
     default:
       ESP_LOGI(HWTAG,"[WiFiEvent] Event: %d\n", event);
       break;
   }
 }
 
-
+ 
 // Displays Webpage if client connects withing 45 seconds to server
 void HandleWebserver::handleWeb() {
     unsigned long currentMillis;
@@ -466,27 +475,30 @@ void HandleWebserver::handleWeb() {
     ESP_LOGI(HWTAG,"initWebServer\n");
     isConnected=false;
 
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        // NVS-Partition muss gelöscht und neu initialisiert werden
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(APNAME);
-    WiFi.onEvent(WiFiEvent);
-    //dnsServer.start(53, "*", WiFi.softAPIP());
-
-    delay(500);
-
-    ESP_LOGI(HWTAG,"status=%d\n",WiFi.status());
-
-    setupActions(); // 
+    
+    
 
     ESP_LOGI(HWTAG,"setupActions finished\n");
+
+    WiFi.onEvent(WiFiEvent);
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(APNAME);
+   
+   
+    //ESP_LOGI(HWTAG,"AP gestartet: %s", WiFi.softAPSSID());
+    //ESP_LOGI(HWTAG,"IP: %s", WiFi.softAPIP().toString().c_str());
+    //dnsServer.start(53, "*", WiFi.softAPIP());
+
+    //vTaskDelay(pdMS_TO_TICKS(3000));
+
+    //ESP_LOGI(HWTAG,"vor status\n");
+
+    //ESP_LOGI(HWTAG,"status=%d\n",WiFi.status());
+    //ESP_LOGI(HWTAG,"nach status\n");
+    delay(1000);
+    
+
+    setupActions(); // 
 
     server.begin();
     if (!MDNS.begin(APNAME)) { // APNAME ist der Hostname

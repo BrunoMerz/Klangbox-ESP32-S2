@@ -38,7 +38,7 @@ PlaySound::PlaySound()
 
 
 // Initialize filesystem
-void PlaySound::initFS() {
+void PlaySound::init() {
   if ( !LittleFS.begin() ) 
   {
     ESP_LOGI(PLTAG,"LittleFS Mount fehlgeschlagen");
@@ -90,8 +90,15 @@ float PlaySound::getBatterie() {
 }
 
 
+// Set file to play
+void PlaySound::setFileFilter(const char *path) {
+  ESP_LOGI(PLTAG,"path=%s\n",path);
+  source.setFileFilter(path);
+}
+
+
 // Set next file to play, counter is set in RTC memory 
-void PlaySound::setFileFilter() {
+void PlaySound::setFileFilter(void) {
   // Select sound file
   fileFilter[0]='\0';
   if(counter<fl->dirList.size()) {
@@ -115,37 +122,36 @@ void PlaySound::doPlaySound() {
     dly=11000;
   } else {
     setFileFilter();
-    dly=0;
+    dly=100;
   }
 
-    // setup output
-    auto cfg = i2s.defaultConfig(TX_MODE);
-    cfg.pin_bck = MYBCLK;
-    cfg.pin_data = DIN;
-    cfg.pin_ws = MYLRC;
-    cfg.channels = 1;
-    i2s.begin(cfg);
+  // setup output
+  auto cfg = i2s.defaultConfig(TX_MODE);
+  cfg.pin_bck = MYBCLK;
+  cfg.pin_data = DIN;
+  cfg.pin_ws = MYLRC;
+  cfg.channels = 1;
+  i2s.begin(cfg);
 
-    // setup player
-    //player.setMetadataCallback(printMetaData);
-    //AudioLogger::instance().begin(Serial, AudioLogger::Info);
+  // setup player
+  //player.setMetadataCallback(printMetaData);
+  //AudioLogger::instance().begin(Serial, AudioLogger::Info);
 
+  player.setVolume(getVolume());
+
+  ESP_LOGI(PLTAG,"Player begin\n");
+
+  // Play sound
+  player.begin();
+  while (player.isActive()) { 
     player.setVolume(getVolume());
+    player.copy(); 
+  };
+  player.end();
 
-    ESP_LOGI(PLTAG,"Player begin\n");
+  ESP_LOGI(PLTAG,"Player end, dly=%d\n", dly);
 
-    // Play sound
-    player.begin();
-    while (player.isActive()) { 
-        player.setVolume(getVolume());
-        player.copy(); 
-    };
-    player.end();
-
-    ESP_LOGI(PLTAG,"Player end, dly=%d\n", dly);
-
-    vTaskDelay(pdMS_TO_TICKS(dly));
-
+  vTaskDelay(pdMS_TO_TICKS(dly));
 }
 
 #endif

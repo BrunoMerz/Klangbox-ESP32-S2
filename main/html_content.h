@@ -1535,9 +1535,7 @@ const char fshtml1[] PROGMEM =  R"=====(
         noted = f;
         dir = `<nav><input type="radio" id="${f}" name="group"><label for="${f}"></label> &#128193; ${f} <a href="?delete=${f}">&#x1f5d1;&#xfe0f;</a></nav>`;
         }
-        //if (n != '') dir += `<li><a href="${f}/${n}">${n}</a><small> ${json[i].size}</small><a href="${f}/${n}"download="${n}"> Download</a> or<a href="?delete=${f}/${n}"> Delete</a>`;
-        if (n != '') dir += `<li><a href="${f}/${n}">${n}</a><small> ${json[i].size}</small><a href="${f}/${n}" download="${n}"> Datei speichern</a> oder<a href="?delete=${f}/${n}"> Löschen</a>`;
-        console.log(dir);
+        if (n != '') dir += `<li><a href="${f}/${n}">${n}</a><small> ${json[i].size}</small> <a href="${f}/${n}" download="${n}"> Speichern</a>,<a href="?play=${f}/${n}"> Abspielen</a> oder <a href="?delete=${f}/${n}"> Löschen</a></li>`;
         myList.insertAdjacentHTML('beforeend', dir);
       }
       myList.insertAdjacentHTML('beforeend', `<li><b id="so">${to ? '&#9660;' : '&#9650;'} LittleFS</b><small> ` + LANG_FSUSED + `: ${json[i].usedBytes.replace(".00", "")}/` + LANG_FSTOTAL + `: ${json[i].totalBytes.replace(".00", "")}/` + LANG_FSFREE + `: ${json[i].freeBytes.replace(".00", "")}</small>`);
@@ -1571,7 +1569,31 @@ const char fshtml1[] PROGMEM =  R"=====(
      });
    });
  }
-    
+
+ function extractPath(url) {
+  try {
+    const { pathname, searchParams } = new URL(url);
+    return searchParams.get("play") || pathname;
+  } catch {
+    return null;
+  }
+ }
+
+  document.addEventListener('click', function(event) {
+    const link = event.target.closest('a[href$=".mp3"]');
+    if (!link) return;
+
+    event.preventDefault();
+    const sanduhrContainer = document.getElementById("sanduhrcontainer");
+    sanduhrContainer.style.display = "block";
+
+    const audio = new Audio(extractPath(link.href));
+    audio.addEventListener('ended', () => {
+      sanduhrContainer.style.display = "none";
+    });
+
+    audio.play();
+  });
 </script>
 </head>
 <body>
@@ -1590,7 +1612,7 @@ const char fshtml2[] PROGMEM =  R"=====(
     const upbut = document.getElementById("up");
     upbut.addEventListener("click", function() {
     document.getElementById("sanduhrcontainer").style.display = "block";
-  });
+    });
   </script>
   
   <form id="no" class="no" method="POST">
